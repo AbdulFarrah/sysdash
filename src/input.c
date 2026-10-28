@@ -11,7 +11,8 @@ void handle_input(int ch, AppState *state)
             break;
         case 'a':
         case 'A':
-            state->show_all_processes = !state->show_all_processes;
+            if (state->active_tab == TAB_PROCESSES)
+                state->show_all_processes = !state->show_all_processes;
             break;
         
         case '\t':

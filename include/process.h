@@ -6,9 +6,10 @@
 
 #define MAX_PROCS 1024
 #define COMM_LEN  64
-#define CMDLINE_LEN 256
+#define EXE_NAME_LEN 256
 #define MAX_GROUPS 256
 #define HIST_LEN 20
+#define MAX_VISIBLE_ROWS (MAX_PROCS + MAX_GROUPS)
 
 typedef enum {
     ROW_GROUP,
@@ -29,7 +30,7 @@ typedef struct {
 
 typedef struct {
     char name[APP_KEY_LEN];
-    int pids[256];
+    int pids[MAX_PROCS];
     int pid_count;
     double cpu_total;
     unsigned long  rss_total;
@@ -42,30 +43,27 @@ typedef struct {
     int session;
     int pid;
     char name[COMM_LEN];
-    char cmdline[CMDLINE_LEN];
+    char executable[EXE_NAME_LEN];
     char app_key[APP_KEY_LEN];
     unsigned long rss_kb;
     double cpu_percent;
     unsigned long long utime;
     unsigned long long stime;
-    unsigned long long last_total_time;
     unsigned long start_time;
-    unsigned long long last_proc_time;
     unsigned char cpu_hist[HIST_LEN];
     unsigned char mem_hist[HIST_LEN];
     int hist_pos;
     double cpu_instant;
-    long last_rss_kb;
-    long rss_delta_kb;
     char state;
     int threads;
     int fd_count;
+    int memory_valid;
+    int fd_valid;
 } ProcInfo;
 
 void process_init(void);
 void process_update(AppState *state);
 void process_draw(AppState *state);
-void process_handle_input(int ch, AppState *state);
 /* process list accessors (read-only) */
 int find_proc_index_by_pid(int pid);
 /* visible row navigation (read-only) */

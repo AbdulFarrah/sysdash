@@ -7,12 +7,6 @@ typedef enum {
     TAB_COUNT
 } Tab;
 
-typedef enum {
-    PROC_ACTION_NONE = 0,
-    PROC_ACTION_EXPAND,
-    PROC_ACTION_COLLAPSE
-} ProcAction;
-
 typedef struct {
     int running;
     int show_all_processes;
@@ -22,11 +16,12 @@ typedef struct {
     int needs_resize;
     int selected_pid;
     char selected_group_name[APP_KEY_LEN];
-    ProcAction proc_action;
     int selected_row;   // index into visible_rows
+    int process_scroll_offset;
     int process_panel_open;
     int panel_pid;
     int panel_width;
+    int readings_stale;
 } AppState;
 
 void state_init(AppState *state);

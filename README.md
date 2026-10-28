@@ -15,7 +15,7 @@ The **Hardware** tab displays live information gathered directly from the Linux 
 - RAM and swap usage
 - Memory activity history
 - Root filesystem capacity and usage
-- Per-interface network RX/TX rates
+- Per-interface network RX/TX rates (up to 64 interfaces)
 - System uptime
 - Scrollable dashboard content
 
@@ -27,25 +27,25 @@ The **Processes** tab provides:
 
 - Process discovery through `/proc`
 - CPU and RSS memory usage
-- Process grouping by application/process name
+- Process grouping by executable name
 - Collapsed and expanded process groups
-- Foreground-process filtering by default
+- Current-user process filtering by default
 - Toggle to show all discovered processes
-- CPU and memory activity histories
+- CPU and memory activity histories in the process-details panel
 - Process state, thread count, and file-descriptor count
-- Process command line information
+- Executable name in the details panel; command-line arguments are hidden
 - An interactive process-details side panel
 - CPU-based process sorting
 
-By default, the process view focuses on processes belonging to the current user and excludes kernel threads. Press `a` to toggle between the default foreground view and all processes.
+By default, the process view shows processes belonging to the current user and excludes kernel threads. Press `a` to toggle between the current user's processes and all discovered processes.
 
 ## Repository Name
 
-Recommended GitHub repository name:
+GitHub repository name:
 
 **`sysdash`**
 
-The name matches the executable produced by the supplied Makefile (`sysdash.exe`) and describes the project's purpose as a system dashboard.
+The Makefile produces a Linux executable named `sysdash`.
 
 ## Requirements
 
@@ -161,20 +161,21 @@ The supplied Makefile:
 The resulting executable is named:
 
 ```text
-sysdash.exe
+sysdash
 ```
 
-Although the filename ends in `.exe`, the supplied build configuration is Unix/Linux-oriented and links against Linux's ncursesw library. On Linux, this is simply the filename chosen by the Makefile; it is not a Windows executable.
 
 ## Run
 
 After a successful build:
 
 ```bash
-./sysdash.exe
+./sysdash
 ```
 
 The application starts on the **Hardware** tab.
+
+The bottom status bar keeps the same order on both tabs: tab-switching keys, `q Quit`, then the active tab name. The Processes tab adds its available process controls after that prefix, shortening the hints on narrower terminals.
 
 ## Keyboard Controls
 
@@ -202,7 +203,7 @@ The application starts on the **Hardware** tab.
 |---|---|
 | `Up Arrow` | Move selection up |
 | `Down Arrow` | Move selection down |
-| `a` / `A` | Toggle foreground/all process view |
+| `a` / `A` | Toggle current-user/all process view |
 | `Enter` | Expand the selected process group |
 | `Backspace` | Collapse the selected group/process parent |
 | `x` / `X` | Open/close the process-details side panel |
@@ -211,15 +212,15 @@ The side panel can be opened only when a child process is selected. It is automa
 
 ## How It Works
 
-The application follows a simple update/draw/input loop:
+The application follows a simple draw/input/update loop. The idle input wait is at most one second; process scans are rate-limited to one per second while the Processes tab is active. Hardware readings update whenever that tab redraws.
 
 1. Initialize application state.
 2. Initialize ncurses.
 3. Initialize hardware and process monitoring modules.
 4. Draw the active tab.
 5. Wait for keyboard input, with ncurses configured for a maximum one-second wait.
-6. Process global input.
-7. Process hardware or process-tab input as appropriate.
+6. Process global keyboard input.
+7. Handle active-tab input and perform a due process refresh.
 8. Repeat until `q`/`Q` stops the application.
 9. Shut down ncurses cleanly.
 
@@ -237,7 +238,7 @@ The monitor does not require a separate system-monitoring daemon. It reads Linux
 | Process list | `/proc` |
 | Process CPU data | `/proc/<pid>/stat` and `/proc/stat` |
 | Process memory/thread data | `/proc/<pid>/status` |
-| Process command line | `/proc/<pid>/cmdline` |
+| Process executable name | First field of `/proc/<pid>/cmdline` (arguments are not displayed) |
 | Process file descriptors | `/proc/<pid>/fd` |
 | Network statistics | `/sys/class/net/<interface>/statistics/` |
 | Root filesystem usage | `statvfs("/", ...)` |
@@ -262,7 +263,8 @@ The process-details panel shows information such as:
 - CPU history
 - Memory usage
 - Uptime
-- Command line
+- Executable name (arguments are hidden)
+- RSS bar relative to the largest listed process, plus its percentage of system RAM
 
 ## Static Analysis
 
@@ -291,10 +293,9 @@ The application also initializes the locale before starting ncurses, allowing wi
 ## Current Limitations
 
 - Linux-specific implementation due to direct use of `/proc`, `/sys`, Linux process metadata, and Linux-specific system interfaces.
-- The supplied Makefile names the Linux output `sysdash.exe`; this is only an executable filename and does not make the program Windows-compatible.
 - The process monitor has fixed-size limits defined in `process.h`.
 - Hardware monitoring is focused on the root filesystem (`/`) rather than presenting every mounted filesystem.
-- Network activity is reported per interface using the interfaces exposed through `/sys/class/net`.
+- Network activity is reported for up to 64 interfaces exposed through `/sys/class/net`; additional interfaces are noted in the dashboard.
 - `tabs.h` is currently a placeholder and does not contain the application's tab definitions.
 
 ## License

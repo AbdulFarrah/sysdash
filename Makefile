@@ -22,7 +22,7 @@ LIBS = -lncursesw
 SRC = $(wildcard src/*.c)
 OBJ = $(SRC:.c=.o)
 
-sysdash.exe: $(OBJ)
+sysdash: $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $(OBJ) $(LIBS)
 	rm -f src/*.o
 
@@ -30,4 +30,6 @@ sysdash.exe: $(OBJ)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f src/*.o sysdash.exe
+	rm -f src/*.o sysdash
+
+.PHONY: clean
